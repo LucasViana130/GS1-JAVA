@@ -52,7 +52,7 @@ public class CropArea {
     private BigDecimal areaSize;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "ds_area_unit", nullable = false, length = 20)
+    @Column(name = "ds_area_unit", length = 20, columnDefinition = "VARCHAR(20)")
     private AreaUnit areaUnit;
 
     @Embedded
