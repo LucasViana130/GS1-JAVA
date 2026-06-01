@@ -3,9 +3,12 @@ package br.com.fiap.agroorbit.exceptions;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,7 +32,18 @@ public class GlobalExceptionHandler {
                 .stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .toList();
+
         return build(HttpStatus.BAD_REQUEST, "Erro de validação", request, details);
+    }
+
+    @ExceptionHandler({AuthenticationException.class, UsernameNotFoundException.class})
+    public ResponseEntity<StandardErrorResponse> authentication(Exception ex, HttpServletRequest request) {
+        return build(HttpStatus.UNAUTHORIZED, "Usuário inexistente ou senha inválida", request, List.of());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<StandardErrorResponse> accessDenied(AccessDeniedException ex, HttpServletRequest request) {
+        return build(HttpStatus.FORBIDDEN, "Acesso negado", request, List.of());
     }
 
     @ExceptionHandler(Exception.class)
@@ -46,6 +60,7 @@ public class GlobalExceptionHandler {
                 request.getRequestURI(),
                 details
         );
+
         return ResponseEntity.status(status).body(response);
     }
 }

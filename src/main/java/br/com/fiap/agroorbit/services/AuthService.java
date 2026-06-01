@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -43,9 +44,11 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(request.email(), request.password());
-        org.springframework.security.core.Authentication auth = authenticationManager.authenticate(authentication);
-        User user = (User) auth.getPrincipal();
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(request.email(), request.password());
+
+        Authentication authentication = authenticationManager.authenticate(authenticationToken);
+        User user = (User) authentication.getPrincipal();
         String token = tokenService.generateToken(user);
 
         return AuthResponse.fromEntity(token, user);
