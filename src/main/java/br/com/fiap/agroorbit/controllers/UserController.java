@@ -3,54 +3,62 @@ package br.com.fiap.agroorbit.controllers;
 import br.com.fiap.agroorbit.dtos.request.UserRequest;
 import br.com.fiap.agroorbit.dtos.response.UserResponse;
 import br.com.fiap.agroorbit.services.UserService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
-@Tag(name = "Usuário", description = "Endpoints para gerenciamento de usuários")
 public class UserController {
 
-    private final UserService userService;
+    private final UserService service;
 
     @GetMapping
-    @Operation(summary = "Listar todos os usuários")
     public ResponseEntity<List<UserResponse>> findAll() {
-        List<UserResponse> users = userService.findAll();
-        users.forEach(user -> user.add(linkTo(methodOn(UserController.class).findById(user.getId())).withSelfRel()));
+        List<UserResponse> users = service.findAll();
+
+        users.forEach(this::addLinks);
+
         return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar usuário por ID")
     public ResponseEntity<UserResponse> findById(@PathVariable Long id) {
-        UserResponse user = userService.findById(id);
-        user.add(linkTo(methodOn(UserController.class).findById(id)).withSelfRel());
-        return ResponseEntity.ok(user);
+        UserResponse response = service.findById(id);
+
+        addLinks(response);
+
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Atualizar usuário")
     public ResponseEntity<UserResponse> update(@PathVariable Long id, @RequestBody @Valid UserRequest request) {
-        UserResponse user = userService.update(id, request);
-        user.add(linkTo(methodOn(UserController.class).findById(id)).withSelfRel());
-        return ResponseEntity.ok(user);
+        UserResponse response = service.update(id, request);
+
+        addLinks(response);
+
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Excluir usuário")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        userService.delete(id);
+        service.delete(id);
+
         return ResponseEntity.noContent().build();
+    }
+
+    private void addLinks(UserResponse response) {
+        Link selfLink = linkTo(methodOn(UserController.class).findById(response.getId())).withSelfRel();
+        Link listLink = linkTo(methodOn(UserController.class).findAll()).withRel("users");
+
+        response.add(selfLink);
+        response.add(listLink);
     }
 }
