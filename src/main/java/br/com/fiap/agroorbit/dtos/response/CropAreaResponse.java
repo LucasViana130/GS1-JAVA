@@ -1,6 +1,7 @@
 package br.com.fiap.agroorbit.dtos.response;
 
 import br.com.fiap.agroorbit.models.CropArea;
+import br.com.fiap.agroorbit.models.enums.AreaUnit;
 import br.com.fiap.agroorbit.models.enums.CropAreaStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,8 +24,10 @@ public class CropAreaResponse extends RepresentationModel<CropAreaResponse> {
     private String name;
     private String cropType;
     private BigDecimal areaSize;
+    private AreaUnit areaUnit;
     private BigDecimal latitude;
     private BigDecimal longitude;
+    private String boundaryGeoJson;
     private CropAreaStatus status;
     private LocalDateTime createdAt;
 
@@ -39,8 +42,10 @@ public class CropAreaResponse extends RepresentationModel<CropAreaResponse> {
                 .name(cropArea.getName())
                 .cropType(cropArea.getCropType())
                 .areaSize(cropArea.getAreaSize())
+                .areaUnit(cropArea.getAreaUnit())
                 .latitude(latitude)
                 .longitude(longitude)
+                .boundaryGeoJson(cropArea.getBoundaryGeoJson())
                 .status(cropArea.getStatus())
                 .createdAt(cropArea.getCreatedAt())
                 .build();

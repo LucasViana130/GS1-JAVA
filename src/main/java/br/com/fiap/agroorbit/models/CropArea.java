@@ -2,8 +2,21 @@ package br.com.fiap.agroorbit.models;
 
 import br.com.fiap.agroorbit.dtos.request.CropAreaRequest;
 import br.com.fiap.agroorbit.models.embedded.GeoLocation;
+import br.com.fiap.agroorbit.models.enums.AreaUnit;
 import br.com.fiap.agroorbit.models.enums.CropAreaStatus;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,8 +51,16 @@ public class CropArea {
     @Column(name = "nr_area_size", nullable = false, precision = 10, scale = 2)
     private BigDecimal areaSize;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ds_area_unit", nullable = false, length = 20)
+    private AreaUnit areaUnit;
+
     @Embedded
     private GeoLocation location;
+
+    @Lob
+    @Column(name = "ds_boundary_geojson", columnDefinition = "CLOB")
+    private String boundaryGeoJson;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "ds_status", nullable = false, length = 30)
@@ -53,8 +74,10 @@ public class CropArea {
         this.name = request.name();
         this.cropType = request.cropType();
         this.areaSize = request.areaSize();
+        this.areaUnit = request.areaUnit() == null ? AreaUnit.HA : request.areaUnit();
         this.location = new GeoLocation(request.latitude(), request.longitude());
-        this.status = request.status();
+        this.boundaryGeoJson = request.boundaryGeoJson();
+        this.status = request.status() == null ? CropAreaStatus.NORMAL : request.status();
     }
 
     public void updateFrom(CropAreaRequest request, Farm farm) {
@@ -62,8 +85,13 @@ public class CropArea {
         this.name = request.name();
         this.cropType = request.cropType();
         this.areaSize = request.areaSize();
+        this.areaUnit = request.areaUnit() == null ? this.areaUnit : request.areaUnit();
         this.location = new GeoLocation(request.latitude(), request.longitude());
-        this.status = request.status();
+        this.boundaryGeoJson = request.boundaryGeoJson();
+
+        if (request.status() != null) {
+            this.status = request.status();
+        }
     }
 
     @PrePersist
@@ -71,8 +99,13 @@ public class CropArea {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }
+
         if (status == null) {
             status = CropAreaStatus.NORMAL;
+        }
+
+        if (areaUnit == null) {
+            areaUnit = AreaUnit.HA;
         }
     }
 }
