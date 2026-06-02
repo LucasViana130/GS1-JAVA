@@ -1,0 +1,2739 @@
+{
+  "info": {
+    "_postman_id": "ef5f6fbb-a5f9-4f87-ace0-f252069b6bd3",
+    "name": "AgroOrbit API - Testes completos GS Java",
+    "description": "Collection com token fix, manualAlert boolean e mainUserEmail ajustado para teste.editado1780357062@agroorbit00.com.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "49713511",
+    "_collection_link": "https://go.postman.co/collection/49713511-ef5f6fbb-a5f9-4f87-ace0-f252069b6bd3?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "01 - Autenticação",
+      "item": [
+        {
+          "name": "Login usuário inicial - salva token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "const token = json.token || json.accessToken || json.jwt;",
+                  "pm.test('Token presente', function () { pm.expect(token).to.not.be.undefined; });",
+                  "if (token) {",
+                  "    pm.collectionVariables.set('token', token);",
+                  "    pm.environment.set('token', token);",
+                  "    pm.globals.set('token', token);",
+                  "}",
+                  "console.log('TOKEN SALVO:', token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{mainUserEmail}}\",\n  \"password\": \"{{mainUserPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Execute primeiro. Salva token na collection, environment e global."
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar usuário de teste",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200/201', function () { pm.expect([200, 201]).to.include(pm.response.code); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "if (json.id) { pm.collectionVariables.set('testUserId', json.id); pm.environment.set('testUserId', json.id); }",
+                  "if (json.data && json.data.id) { pm.collectionVariables.set('testUserId', json.data.id); pm.environment.set('testUserId', json.data.id); }",
+                  "if (json.content && json.content[0] && json.content[0].id) { pm.collectionVariables.set('testUserId', json.content[0].id); pm.environment.set('testUserId', json.content[0].id); }",
+                  "console.log('testUserId:', pm.collectionVariables.get('testUserId'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Usuário Teste {{$timestamp}}\",\n  \"email\": \"teste{{$timestamp}}@agroorbit.com\",\n  \"password\": \"123456\",\n  \"role\": \"ROLE_PRODUCER\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login inválido - deve retornar 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401 esperado', function () { pm.expect(pm.response.code).to.eql(401); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{mainUserEmail}}\",\n  \"password\": \"senhaerrada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Usuários",
+      "item": [
+        {
+          "name": "Listar usuários",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar usuário inicial por ID 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Editar usuário de teste",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Usuário Teste Editado\",\n  \"email\": \"teste.editado{{$timestamp}}@agroorbit.com\",\n  \"role\": \"ROLE_PRODUCER\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{testUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{testUserId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar usuário inexistente - deve dar erro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status de erro esperado', function () { pm.expect([400, 401, 403, 404, 409, 500]).to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "999999"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 - Dashboard",
+      "item": [
+        {
+          "name": "Resumo do dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 - Fazendas",
+      "item": [
+        {
+          "name": "Criar fazenda",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200/201', function () { pm.expect([200, 201]).to.include(pm.response.code); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "if (json.id) { pm.collectionVariables.set('farmId', json.id); pm.environment.set('farmId', json.id); }",
+                  "if (json.data && json.data.id) { pm.collectionVariables.set('farmId', json.data.id); pm.environment.set('farmId', json.data.id); }",
+                  "if (json.content && json.content[0] && json.content[0].id) { pm.collectionVariables.set('farmId', json.content[0].id); pm.environment.set('farmId', json.content[0].id); }",
+                  "console.log('farmId:', pm.collectionVariables.get('farmId'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"name\": \"Fazenda Teste {{$timestamp}}\",\n  \"owner\": \"Lucas Viana\",\n  \"city\": \"São Paulo\",\n  \"state\": \"SP\",\n  \"country\": \"Brasil\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/farms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "farms"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar fazendas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/farms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "farms"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar fazenda por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/farms/{{farmId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "farms",
+                "{{farmId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Editar fazenda",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"name\": \"Fazenda Teste Editada\",\n  \"owner\": \"Lucas Viana\",\n  \"city\": \"Campinas\",\n  \"state\": \"SP\",\n  \"country\": \"Brasil\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/farms/{{farmId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "farms",
+                "{{farmId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar talhões da fazenda",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/farms/{{farmId}}/crop-areas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "farms",
+                "{{farmId}}",
+                "crop-areas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar fazenda inexistente - deve dar erro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status de erro esperado', function () { pm.expect([400, 401, 403, 404, 409, 500]).to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/farms/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "farms",
+                "999999"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05 - Talhões / Áreas de plantio",
+      "item": [
+        {
+          "name": "Criar talhão com boundaryGeoJson e areaUnit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200/201', function () { pm.expect([200, 201]).to.include(pm.response.code); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "if (json.id) { pm.collectionVariables.set('cropAreaId', json.id); pm.environment.set('cropAreaId', json.id); }",
+                  "if (json.data && json.data.id) { pm.collectionVariables.set('cropAreaId', json.data.id); pm.environment.set('cropAreaId', json.data.id); }",
+                  "if (json.content && json.content[0] && json.content[0].id) { pm.collectionVariables.set('cropAreaId', json.content[0].id); pm.environment.set('cropAreaId', json.content[0].id); }",
+                  "console.log('cropAreaId:', pm.collectionVariables.get('cropAreaId'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"farmId\": \"{{farmId}}\",\n  \"name\": \"Talhão Teste {{$timestamp}}\",\n  \"cropType\": \"Milho\",\n  \"areaSize\": 4.5,\n  \"areaUnit\": \"HA\",\n  \"latitude\": -23.55052,\n  \"longitude\": -46.633308,\n  \"boundaryGeoJson\": \"{\\\"type\\\":\\\"Polygon\\\",\\\"coordinates\\\":[[[-46.634,-23.551],[-46.632,-23.551],[-46.632,-23.549],[-46.634,-23.549],[-46.634,-23.551]]]}\",\n  \"status\": \"NORMAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/crop-areas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "crop-areas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar talhões",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/crop-areas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "crop-areas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar talhão por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/crop-areas/{{cropAreaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "crop-areas",
+                "{{cropAreaId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Editar talhão",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"farmId\": \"{{farmId}}\",\n  \"name\": \"Talhão Teste Editado\",\n  \"cropType\": \"Soja\",\n  \"areaSize\": 12000,\n  \"areaUnit\": \"M2\",\n  \"latitude\": -23.55052,\n  \"longitude\": -46.633308,\n  \"boundaryGeoJson\": \"{\\\"type\\\":\\\"Polygon\\\",\\\"coordinates\\\":[[[-46.634,-23.551],[-46.632,-23.551],[-46.632,-23.549],[-46.634,-23.549],[-46.634,-23.551]]]}\",\n  \"status\": \"ATTENTION\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/crop-areas/{{cropAreaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "crop-areas",
+                "{{cropAreaId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sensores do talhão",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/crop-areas/{{cropAreaId}}/sensors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "crop-areas",
+                "{{cropAreaId}}",
+                "sensors"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Leituras do talhão",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/crop-areas/{{cropAreaId}}/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "crop-areas",
+                "{{cropAreaId}}",
+                "readings"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Dados satelitais do talhão",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/crop-areas/{{cropAreaId}}/satellite-data",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "crop-areas",
+                "{{cropAreaId}}",
+                "satellite-data"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Alertas do talhão",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/crop-areas/{{cropAreaId}}/alerts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "crop-areas",
+                "{{cropAreaId}}",
+                "alerts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Recomendações do talhão",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/crop-areas/{{cropAreaId}}/recommendations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "crop-areas",
+                "{{cropAreaId}}",
+                "recommendations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar talhão inválido sem nome - deve dar erro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400 esperado', function () { pm.expect(pm.response.code).to.eql(400); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"farmId\": \"{{farmId}}\",\n  \"name\": \"\",\n  \"cropType\": \"Milho\",\n  \"areaSize\": 4.5,\n  \"areaUnit\": \"HA\",\n  \"status\": \"NORMAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/crop-areas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "crop-areas"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "06 - Sensores",
+      "item": [
+        {
+          "name": "Criar sensor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200/201', function () { pm.expect([200, 201]).to.include(pm.response.code); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "if (json.id) { pm.collectionVariables.set('sensorId', json.id); pm.environment.set('sensorId', json.id); }",
+                  "if (json.data && json.data.id) { pm.collectionVariables.set('sensorId', json.data.id); pm.environment.set('sensorId', json.data.id); }",
+                  "if (json.content && json.content[0] && json.content[0].id) { pm.collectionVariables.set('sensorId', json.content[0].id); pm.environment.set('sensorId', json.content[0].id); }",
+                  "console.log('sensorId:', pm.collectionVariables.get('sensorId'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cropAreaId\": \"{{cropAreaId}}\",\n  \"name\": \"Sensor Teste {{$timestamp}}\",\n  \"sensorType\": \"WEATHER_STATION\",\n  \"status\": \"ACTIVE\",\n  \"installationDate\": \"2026-06-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/sensors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sensors"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar sensores",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/sensors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sensors"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar sensor por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/sensors/{{sensorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sensors",
+                "{{sensorId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Editar sensor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cropAreaId\": \"{{cropAreaId}}\",\n  \"name\": \"Sensor Teste Editado\",\n  \"sensorType\": \"WEATHER_STATION\",\n  \"status\": \"ACTIVE\",\n  \"installationDate\": \"2026-06-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/sensors/{{sensorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sensors",
+                "{{sensorId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar leituras do sensor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/sensors/{{sensorId}}/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sensors",
+                "{{sensorId}}",
+                "readings"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar sensor inválido - deve dar erro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400 esperado', function () { pm.expect(pm.response.code).to.eql(400); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cropAreaId\": \"{{cropAreaId}}\",\n  \"name\": \"\",\n  \"sensorType\": \"WEATHER_STATION\",\n  \"status\": \"ACTIVE\",\n  \"installationDate\": \"2026-06-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/sensors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sensors"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "07 - Leituras simuladas de sensores",
+      "item": [
+        {
+          "name": "Criar leitura normal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200/201', function () { pm.expect([200, 201]).to.include(pm.response.code); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "if (json.id) { pm.collectionVariables.set('readingId', json.id); pm.environment.set('readingId', json.id); }",
+                  "if (json.data && json.data.id) { pm.collectionVariables.set('readingId', json.data.id); pm.environment.set('readingId', json.data.id); }",
+                  "if (json.content && json.content[0] && json.content[0].id) { pm.collectionVariables.set('readingId', json.content[0].id); pm.environment.set('readingId', json.content[0].id); }",
+                  "console.log('readingId:', pm.collectionVariables.get('readingId'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sensorId\": \"{{sensorId}}\",\n  \"temperature\": 28.5,\n  \"airHumidity\": 55,\n  \"soilHumidity\": 60,\n  \"manualAlert\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/sensor-readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sensor-readings"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar leitura crítica para risco de seca",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200/201', function () { pm.expect([200, 201]).to.include(pm.response.code); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "if (json.id) { pm.collectionVariables.set('readingId', json.id); pm.environment.set('readingId', json.id); }",
+                  "if (json.data && json.data.id) { pm.collectionVariables.set('readingId', json.data.id); pm.environment.set('readingId', json.data.id); }",
+                  "if (json.content && json.content[0] && json.content[0].id) { pm.collectionVariables.set('readingId', json.content[0].id); pm.environment.set('readingId', json.content[0].id); }",
+                  "console.log('readingId:', pm.collectionVariables.get('readingId'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sensorId\": \"{{sensorId}}\",\n  \"temperature\": 35.2,\n  \"airHumidity\": 27.5,\n  \"soilHumidity\": 22,\n  \"manualAlert\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/sensor-readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sensor-readings"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar leituras",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/sensor-readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sensor-readings"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar leitura por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/sensor-readings/{{readingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sensor-readings",
+                "{{readingId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Última leitura do talhão",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/sensor-readings/latest/crop-area/{{cropAreaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sensor-readings",
+                "latest",
+                "crop-area",
+                "{{cropAreaId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar leitura inválida - umidade acima de 100",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status de erro esperado', function () { pm.expect([400, 401, 403, 404, 409, 500]).to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sensorId\": \"{{sensorId}}\",\n  \"temperature\": 30,\n  \"airHumidity\": 120,\n  \"soilHumidity\": 60,\n  \"manualAlert\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/sensor-readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sensor-readings"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "08 - Dados satelitais / NDVI",
+      "item": [
+        {
+          "name": "Criar dado satelital saudável",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200/201', function () { pm.expect([200, 201]).to.include(pm.response.code); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "if (json.id) { pm.collectionVariables.set('satelliteDataId', json.id); pm.environment.set('satelliteDataId', json.id); }",
+                  "if (json.data && json.data.id) { pm.collectionVariables.set('satelliteDataId', json.data.id); pm.environment.set('satelliteDataId', json.data.id); }",
+                  "if (json.content && json.content[0] && json.content[0].id) { pm.collectionVariables.set('satelliteDataId', json.content[0].id); pm.environment.set('satelliteDataId', json.content[0].id); }",
+                  "console.log('satelliteDataId:', pm.collectionVariables.get('satelliteDataId'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cropAreaId\": \"{{cropAreaId}}\",\n  \"source\": \"SENTINEL_HUB_STATISTICAL_API\",\n  \"ndviAverage\": 0.72,\n  \"ndviMin\": 0.61,\n  \"ndviMax\": 0.88,\n  \"surfaceTemperature\": 30.5,\n  \"cloudCoverage\": 15,\n  \"captureDate\": \"2026-06-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/satellite-data",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "satellite-data"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar dado satelital crítico para risco",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200/201', function () { pm.expect([200, 201]).to.include(pm.response.code); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "if (json.id) { pm.collectionVariables.set('satelliteDataId', json.id); pm.environment.set('satelliteDataId', json.id); }",
+                  "if (json.data && json.data.id) { pm.collectionVariables.set('satelliteDataId', json.data.id); pm.environment.set('satelliteDataId', json.data.id); }",
+                  "if (json.content && json.content[0] && json.content[0].id) { pm.collectionVariables.set('satelliteDataId', json.content[0].id); pm.environment.set('satelliteDataId', json.content[0].id); }",
+                  "console.log('satelliteDataId:', pm.collectionVariables.get('satelliteDataId'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cropAreaId\": \"{{cropAreaId}}\",\n  \"source\": \"SENTINEL_HUB_STATISTICAL_API\",\n  \"ndviAverage\": 0.38,\n  \"ndviMin\": 0.25,\n  \"ndviMax\": 0.61,\n  \"surfaceTemperature\": 36.5,\n  \"cloudCoverage\": 18,\n  \"captureDate\": \"2026-06-02\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/satellite-data",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "satellite-data"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar dados satelitais",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/satellite-data",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "satellite-data"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar dado satelital por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/satellite-data/{{satelliteDataId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "satellite-data",
+                "{{satelliteDataId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Último dado satelital do talhão",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/satellite-data/latest/crop-area/{{cropAreaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "satellite-data",
+                "latest",
+                "crop-area",
+                "{{cropAreaId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar NDVI inválido - deve dar erro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status de erro esperado', function () { pm.expect([400, 401, 403, 404, 409, 500]).to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cropAreaId\": \"{{cropAreaId}}\",\n  \"source\": \"SENTINEL_HUB_STATISTICAL_API\",\n  \"ndviAverage\": 2.5,\n  \"ndviMin\": 0.25,\n  \"ndviMax\": 0.61,\n  \"surfaceTemperature\": 36.5,\n  \"cloudCoverage\": 18,\n  \"captureDate\": \"2026-06-02\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/satellite-data",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "satellite-data"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "09 - Análise de risco",
+      "item": [
+        {
+          "name": "Executar análise de risco do talhão",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200/201', function () { pm.expect([200, 201]).to.include(pm.response.code); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "if (json.alertId) { pm.collectionVariables.set('alertId', json.alertId); pm.environment.set('alertId', json.alertId); }",
+                  "if (json.recommendationId) { pm.collectionVariables.set('recommendationId', json.recommendationId); pm.environment.set('recommendationId', json.recommendationId); }",
+                  "if (json.alert && json.alert.id) { pm.collectionVariables.set('alertId', json.alert.id); pm.environment.set('alertId', json.alert.id); }",
+                  "if (json.recommendation && json.recommendation.id) { pm.collectionVariables.set('recommendationId', json.recommendation.id); pm.environment.set('recommendationId', json.recommendation.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/risk-analysis/{{cropAreaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "risk-analysis",
+                "{{cropAreaId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Executar análise de risco de talhão inexistente - deve dar erro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status de erro esperado', function () { pm.expect([400, 401, 403, 404, 409, 500]).to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/risk-analysis/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "risk-analysis",
+                "999999"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "10 - Alertas climáticos",
+      "item": [
+        {
+          "name": "Listar alertas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "if (Array.isArray(json) && json.length > 0 && json[0].id) { pm.collectionVariables.set('alertId', json[0].id); pm.environment.set('alertId', json[0].id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/climate-alerts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "climate-alerts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar alertas abertos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/climate-alerts/open",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "climate-alerts",
+                "open"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar alertas críticos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/climate-alerts/critical",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "climate-alerts",
+                "critical"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar alerta por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/climate-alerts/{{alertId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "climate-alerts",
+                "{{alertId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resolver alerta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/climate-alerts/{{alertId}}/resolve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "climate-alerts",
+                "{{alertId}}",
+                "resolve"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resolver alerta inexistente - deve dar erro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status de erro esperado', function () { pm.expect([400, 401, 403, 404, 409, 500]).to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/climate-alerts/999999/resolve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "climate-alerts",
+                "999999",
+                "resolve"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "11 - Recomendações",
+      "item": [
+        {
+          "name": "Listar recomendações",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "if (Array.isArray(json) && json.length > 0 && json[0].id) { pm.collectionVariables.set('recommendationId', json[0].id); pm.environment.set('recommendationId', json[0].id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recommendations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recommendations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar recomendação por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recommendations/{{recommendationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recommendations",
+                "{{recommendationId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Recomendações do alerta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/alerts/{{alertId}}/recommendations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "alerts",
+                "{{alertId}}",
+                "recommendations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Recomendações do talhão",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "pm.test('Resposta em JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/crop-areas/{{cropAreaId}}/recommendations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "crop-areas",
+                "{{cropAreaId}}",
+                "recommendations"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "12 - Limpeza opcional",
+      "item": [
+        {
+          "name": "Deletar leitura criada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200/204', function () { pm.expect([200, 204]).to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/sensor-readings/{{readingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sensor-readings",
+                "{{readingId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar sensor criado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200/204', function () { pm.expect([200, 204]).to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/sensors/{{sensorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sensors",
+                "{{sensorId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar talhão criado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200/204', function () { pm.expect([200, 204]).to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/crop-areas/{{cropAreaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "crop-areas",
+                "{{cropAreaId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar fazenda criada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200/204', function () { pm.expect([200, 204]).to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/farms/{{farmId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "farms",
+                "{{farmId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar usuário de teste",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200/204', function () { pm.expect([200, 204]).to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{testUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{testUserId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.variables.set('timestamp', Date.now());"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "mainUserEmail",
+      "value": "teste.editado1780357062@agroorbit00.com"
+    },
+    {
+      "key": "mainUserPassword",
+      "value": "123456"
+    },
+    {
+      "key": "testUserId",
+      "value": ""
+    },
+    {
+      "key": "farmId",
+      "value": "1"
+    },
+    {
+      "key": "cropAreaId",
+      "value": "1"
+    },
+    {
+      "key": "sensorId",
+      "value": "1"
+    },
+    {
+      "key": "readingId",
+      "value": ""
+    },
+    {
+      "key": "satelliteDataId",
+      "value": ""
+    },
+    {
+      "key": "alertId",
+      "value": ""
+    },
+    {
+      "key": "recommendationId",
+      "value": ""
+    }
+  ]
+}
