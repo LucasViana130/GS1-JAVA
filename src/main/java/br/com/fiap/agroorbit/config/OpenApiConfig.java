@@ -2,18 +2,30 @@ package br.com.fiap.agroorbit.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
-import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 @Configuration
 public class OpenApiConfig {
+
     @Bean
-    public OpenAPI agroOrbitOpenAPI() {
+    public OpenAPI customOpenAPI() {
+        Server productionServer = new Server();
+        productionServer.setUrl("https://gs1-java-production.up.railway.app");
+        productionServer.setDescription("Railway Production");
+
+        Server localServer = new Server();
+        localServer.setUrl("http://localhost:8080");
+        localServer.setDescription("Local Development");
+
         return new OpenAPI()
-                .info(new Info().title("AgroOrbit API").version("1.0.0").description("API da Global Solution 2026/1 para monitoramento agrícola com dados satelitais, leituras simuladas de sensores e alertas."))
-                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
-                .schemaRequirement("bearerAuth", new SecurityScheme().name("bearerAuth").type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT"));
+                .servers(List.of(productionServer, localServer))
+                .info(new Info()
+                        .title("AgroOrbit API")
+                        .version("1.0.0")
+                        .description("API REST da solução AgroOrbit para monitoramento agrícola com sensores simulados, dados satelitais, alertas e recomendações."));
     }
 }
