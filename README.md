@@ -1,12 +1,13 @@
-# AgroOrbit API - Global Solution 2026/1
+# AgroOrbit API - Global Solution 2026
 
 ## Integrantes
 
 | Nome | RM |
 |---|---|
-| Lucas Gonçalves Viana | Preencher |
-| Integrante 2 | Preencher |
-| Integrante 3 | Preencher |
+| Lucas Gonçalves Viana | 563254 |
+| Deryk de Souza Queiroz | 563412 |
+| Vinicius Paschoeto da Silva | 563089 |
+| Felipe Wiclif Leal da Silva| 563901 |
 
 ---
 
