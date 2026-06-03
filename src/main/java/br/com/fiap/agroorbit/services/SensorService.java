@@ -6,7 +6,9 @@ import br.com.fiap.agroorbit.exceptions.ResourceNotFoundException;
 import br.com.fiap.agroorbit.models.*;
 import br.com.fiap.agroorbit.models.enums.SensorType;
 import br.com.fiap.agroorbit.repositories.CropAreaRepository;
+import br.com.fiap.agroorbit.repositories.SensorReadingRepository;
 import br.com.fiap.agroorbit.repositories.SensorRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
@@ -22,6 +24,7 @@ public class SensorService {
 
     private final SensorRepository repository;
     private final CropAreaRepository cropAreaRepository;
+    private final SensorReadingRepository sensorReadingRepository;
 
     @Cacheable(value = "sensors")
     public Page<SensorResponse> findAll(Pageable pageable) {
@@ -60,12 +63,20 @@ public class SensorService {
         return SensorResponse.fromEntity(repository.save(sensor));
     }
 
-    @CacheEvict(value = {"sensors", "sensorsByCropArea", "sensor", "dashboard"}, allEntries = true)
+    @Transactional
+    @CacheEvict(value = {
+            "sensors",
+            "sensor-readings",
+            "crop-areas",
+            "dashboard"
+    }, allEntries = true)
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new ResourceNotFoundException("Sensor não encontrado");
-        }
-        repository.deleteById(id);
+        Sensor sensor = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sensor não encontrado"));
+
+        sensorReadingRepository.deleteBySensorId(sensor.getId());
+
+        repository.delete(sensor);
     }
 
     private Sensor createSensorByType(SensorRequest request, CropArea cropArea) {

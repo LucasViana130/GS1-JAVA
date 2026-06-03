@@ -4,8 +4,10 @@ import br.com.fiap.agroorbit.models.CropArea;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface CropAreaRepository extends JpaRepository<CropArea, Long> {
-    long countByFarmUserId(Long userId);
-    java.util.List<CropArea> findByFarmId(Long farmId);
+
+    List<CropArea> findByFarmId(Long farmId);
 }

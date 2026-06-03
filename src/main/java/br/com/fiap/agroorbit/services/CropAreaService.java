@@ -6,14 +6,15 @@ import br.com.fiap.agroorbit.exceptions.ResourceNotFoundException;
 import br.com.fiap.agroorbit.models.CropArea;
 import br.com.fiap.agroorbit.models.Farm;
 import br.com.fiap.agroorbit.models.enums.CropAreaStatus;
-import br.com.fiap.agroorbit.repositories.CropAreaRepository;
-import br.com.fiap.agroorbit.repositories.FarmRepository;
+import br.com.fiap.agroorbit.repositories.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import br.com.fiap.agroorbit.repositories.RecommendationRepository;
 
 import java.util.List;
 
@@ -23,6 +24,11 @@ public class CropAreaService {
 
     private final CropAreaRepository repository;
     private final FarmRepository farmRepository;
+    private final RecommendationRepository recommendationRepository;
+    private final ClimateAlertRepository climateAlertRepository;
+    private final SensorReadingRepository sensorReadingRepository;
+    private final SensorRepository sensorRepository;
+    private final SatelliteDataRepository satelliteDataRepository;
 
     @Cacheable(value = "cropAreas")
     public Page<CropAreaResponse> findAll(Pageable pageable) {
@@ -66,12 +72,36 @@ public class CropAreaService {
         cropArea.setStatus(status);
         return repository.save(cropArea);
     }
+    @Transactional
+    public void deleteCropAreaWithChildren(Long cropAreaId) {
+        CropArea cropArea = repository.findById(cropAreaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Talhão não encontrado"));
 
-    @CacheEvict(value = {"cropAreas", "cropAreasByFarm", "cropArea", "dashboard"}, allEntries = true)
+        recommendationRepository.deleteByAlertCropAreaId(cropArea.getId());
+
+        climateAlertRepository.deleteByCropAreaId(cropArea.getId());
+
+        sensorReadingRepository.deleteBySensorCropAreaId(cropArea.getId());
+
+        sensorRepository.deleteByCropAreaId(cropArea.getId());
+
+        satelliteDataRepository.deleteByCropAreaId(cropArea.getId());
+
+        repository.delete(cropArea);
+    }
+
+    @Transactional
+    @CacheEvict(value = {
+            "crop-areas",
+            "farms",
+            "sensors",
+            "sensor-readings",
+            "satellite-data",
+            "climate-alerts",
+            "recommendations",
+            "dashboard"
+    }, allEntries = true)
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new ResourceNotFoundException("Talhão não encontrado");
-        }
-        repository.deleteById(id);
+        deleteCropAreaWithChildren(id);
     }
 }

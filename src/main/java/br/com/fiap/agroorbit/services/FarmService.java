@@ -3,10 +3,13 @@ package br.com.fiap.agroorbit.services;
 import br.com.fiap.agroorbit.dtos.request.FarmRequest;
 import br.com.fiap.agroorbit.dtos.response.FarmResponse;
 import br.com.fiap.agroorbit.exceptions.ResourceNotFoundException;
+import br.com.fiap.agroorbit.models.CropArea;
 import br.com.fiap.agroorbit.models.Farm;
 import br.com.fiap.agroorbit.models.User;
+import br.com.fiap.agroorbit.repositories.CropAreaRepository;
 import br.com.fiap.agroorbit.repositories.FarmRepository;
 import br.com.fiap.agroorbit.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
@@ -22,6 +25,8 @@ public class FarmService {
 
     private final FarmRepository repository;
     private final UserRepository userRepository;
+    private final CropAreaRepository cropAreaRepository;
+    private final CropAreaService cropAreaService;
 
     @Cacheable(value = "farms")
     public Page<FarmResponse> findAll(Pageable pageable) {
@@ -60,11 +65,27 @@ public class FarmService {
         return FarmResponse.fromEntity(repository.save(farm));
     }
 
-    @CacheEvict(value = {"farms", "farmsByUser", "farm", "dashboard"}, allEntries = true)
+    @Transactional
+    @CacheEvict(value = {
+            "farms",
+            "crop-areas",
+            "sensors",
+            "sensor-readings",
+            "satellite-data",
+            "climate-alerts",
+            "recommendations",
+            "dashboard"
+    }, allEntries = true)
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new ResourceNotFoundException("Fazenda não encontrada");
+        Farm farm = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Fazenda não encontrada"));
+
+        List<CropArea> cropAreas = cropAreaRepository.findByFarmId(farm.getId());
+
+        for (CropArea cropArea : cropAreas) {
+            cropAreaService.deleteCropAreaWithChildren(cropArea.getId());
         }
-        repository.deleteById(id);
+
+        repository.delete(farm);
     }
 }
