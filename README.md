@@ -425,7 +425,7 @@ Representa recomendações associadas aos alertas.
 Campos principais:
 
 - id
-- climateAlert
+- alert
 - message
 - priority
 - createdAt
