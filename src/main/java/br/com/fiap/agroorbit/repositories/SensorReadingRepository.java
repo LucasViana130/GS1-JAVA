@@ -16,6 +16,8 @@ public interface SensorReadingRepository extends JpaRepository<SensorReading, Lo
 
     Optional<SensorReading> findTopBySensorCropAreaIdOrderByReadingDateDesc(Long cropAreaId);
 
+    Optional<SensorReading> findTopByOrderByReadingDateDesc();
+
     void deleteBySensorId(Long sensorId);
 
     void deleteBySensorCropAreaId(Long cropAreaId);

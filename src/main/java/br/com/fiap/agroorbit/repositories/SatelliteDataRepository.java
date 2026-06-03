@@ -14,5 +14,7 @@ public interface SatelliteDataRepository extends JpaRepository<SatelliteData, Lo
 
     Optional<SatelliteData> findTopByCropAreaIdOrderByCaptureDateDesc(Long cropAreaId);
 
+    Optional<SatelliteData> findTopByCropAreaIdOrderByCaptureDateDescCreatedAtDesc(Long cropAreaId);
+
     void deleteByCropAreaId(Long cropAreaId);
 }

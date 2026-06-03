@@ -29,6 +29,7 @@ public class CropAreaService {
     private final SensorReadingRepository sensorReadingRepository;
     private final SensorRepository sensorRepository;
     private final SatelliteDataRepository satelliteDataRepository;
+    private final CropAreaSatelliteSnapshotRepository cropAreaSatelliteSnapshotRepository;
 
     @Cacheable(value = "cropAreas")
     public Page<CropAreaResponse> findAll(Pageable pageable) {
@@ -86,6 +87,8 @@ public class CropAreaService {
         sensorRepository.deleteByCropAreaId(cropArea.getId());
 
         satelliteDataRepository.deleteByCropAreaId(cropArea.getId());
+
+        cropAreaSatelliteSnapshotRepository.deleteByIdCropAreaId(cropArea.getId());
 
         repository.delete(cropArea);
     }

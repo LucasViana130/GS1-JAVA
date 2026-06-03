@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CropAreaSatelliteSnapshotRepository extends JpaRepository<CropAreaSatelliteSnapshot, CropAreaSatelliteSnapshotId> {
+
+    void deleteByIdCropAreaId(Long cropAreaId);
 }

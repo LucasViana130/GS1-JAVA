@@ -17,5 +17,9 @@ public interface ClimateAlertRepository extends JpaRepository<ClimateAlert, Long
 
     List<ClimateAlert> findBySeverity(AlertSeverity severity);
 
+    long countByStatus(AlertStatus status);
+
+    long countBySeverityAndStatus(AlertSeverity severity, AlertStatus status);
+
     void deleteByCropAreaId(Long cropAreaId);
 }
