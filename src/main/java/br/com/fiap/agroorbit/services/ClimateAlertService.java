@@ -11,6 +11,8 @@ import br.com.fiap.agroorbit.models.enums.AlertStatus;
 import br.com.fiap.agroorbit.models.enums.AlertType;
 import br.com.fiap.agroorbit.repositories.ClimateAlertRepository;
 import br.com.fiap.agroorbit.repositories.CropAreaRepository;
+import br.com.fiap.agroorbit.repositories.RecommendationRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
@@ -25,6 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ClimateAlertService {
 
+    private final RecommendationRepository recommendationRepository;
     private final ClimateAlertRepository repository;
     private final CropAreaRepository cropAreaRepository;
 
@@ -95,11 +98,14 @@ public class ClimateAlertService {
         return ClimateAlertResponse.fromEntity(repository.save(alert));
     }
 
-    @CacheEvict(value = {"climateAlerts", "openClimateAlerts", "criticalClimateAlerts", "climateAlertsByCropArea", "climateAlert", "dashboard"}, allEntries = true)
+    @CacheEvict(value = {"climateAlerts", "openClimateAlerts", "criticalClimateAlerts", "climateAlertsByCropArea", "climateAlert", "recommendations", "recommendationsByAlert", "recommendationsByCropArea", "dashboard"}, allEntries = true)
+    @Transactional
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new ResourceNotFoundException("Alerta não encontrado");
-        }
-        repository.deleteById(id);
+        ClimateAlert alert = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Alerta não encontrado"));
+
+        recommendationRepository.deleteByAlertId(alert.getId());
+
+        repository.delete(alert);
     }
 }
