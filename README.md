@@ -844,7 +844,7 @@ A aplicação utiliza Spring Cache em operações de consulta e limpeza de cache
 Exemplos de uso:
 
 - `@Cacheable` em buscas e listagens;
-- `@CacheEvict` em criação, atualização e exclusão.
+* `@CacheEvict` em criação, atualização e exclusão, incluindo os deletes controlados de sensores, talhões e fazendas.
 
 Isso melhora a organização da camada de serviço e atende ao requisito de utilização de cache.
 
