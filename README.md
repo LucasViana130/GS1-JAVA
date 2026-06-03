@@ -688,6 +688,25 @@ Risco de seca / estresse da vegetação
 | GET | `/dashboard` | Retorna resumo geral da plataforma |
 
 ---
+### Observação sobre exclusões
+
+Os endpoints de exclusão de fazendas, talhões e sensores utilizam exclusão controlada na camada de service com `@Transactional`.
+
+Essa regra foi adicionada para evitar erro de integridade referencial quando existem dados relacionados, como leituras de sensores, dados satelitais, alertas e recomendações.
+
+Fluxo adotado:
+
+```text
+DELETE /sensors/{id}
+SensorReading → Sensor
+
+DELETE /crop-areas/{id}
+Recommendation → ClimateAlert → SensorReading → Sensor → SatelliteData → CropArea
+
+DELETE /farms/{id}
+Dados dos talhões → CropArea → Farm
+```
+---
 
 # 14. Exemplos de requisições
 
