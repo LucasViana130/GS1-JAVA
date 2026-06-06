@@ -14,8 +14,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import br.com.fiap.agroorbit.repositories.RecommendationRepository;
-
 import java.util.List;
 
 @Service
@@ -95,13 +93,30 @@ public class CropAreaService {
 
     @Transactional
     @CacheEvict(value = {
-            "crop-areas",
+            // caches reais usados nos @Cacheable do projeto
+            "cropAreas",
+            "cropAreasByFarm",
+            "cropArea",
             "farms",
+            "farmsByUser",
+            "farm",
             "sensors",
-            "sensor-readings",
-            "satellite-data",
-            "climate-alerts",
+            "sensorsByCropArea",
+            "sensor",
+            "sensorReadings",
+            "sensorReadingsBySensor",
+            "sensorReadingsByCropArea",
+            "sensorReading",
+            "satelliteData",
+            "satelliteDataByCropArea",
+            "satelliteDataItem",
+            "climateAlerts",
+            "climateAlertsOpen",
+            "climateAlertsCritical",
+            "climateAlertsByCropArea",
             "recommendations",
+            "recommendationsByAlert",
+            "recommendationsByCropArea",
             "dashboard"
     }, allEntries = true)
     public void delete(Long id) {
