@@ -66,14 +66,22 @@ public class SensorService {
     @Transactional
     @CacheEvict(value = {
             "sensors",
-            "sensor-readings",
-            "crop-areas",
+            "sensorsByCropArea",
+            "sensor",
+            "sensorReadings",
+            "sensorReadingsBySensor",
+            "sensorReadingsByCropArea",
+            "sensorReading",
+            "cropAreas",
+            "cropArea",
             "dashboard"
     }, allEntries = true)
     public void delete(Long id) {
         Sensor sensor = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sensor não encontrado"));
 
+        // O sensor pode ter leituras IoT vinculadas. Removemos primeiro os filhos
+        // para evitar violação de integridade referencial no banco.
         sensorReadingRepository.deleteBySensorId(sensor.getId());
 
         repository.delete(sensor);
