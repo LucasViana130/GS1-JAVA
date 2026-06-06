@@ -80,8 +80,6 @@ public class SensorService {
         Sensor sensor = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sensor não encontrado"));
 
-        // O sensor pode ter leituras IoT vinculadas. Removemos primeiro os filhos
-        // para evitar violação de integridade referencial no banco.
         sensorReadingRepository.deleteBySensorId(sensor.getId());
 
         repository.delete(sensor);
