@@ -19,7 +19,7 @@
 | Deploy da API | https://gs1-java-production.up.railway.app |
 | Swagger/OpenAPI | https://gs1-java-production.up.railway.app/swagger-ui.html |
 | H2 Console | https://gs1-java-production.up.railway.app/h2-console |
-| Vídeo de apresentação | Preencher |
+| Vídeo de apresentação | https://www.youtube.com/watch?v=a5Xf9Jn5WfA |
 | Vídeo pitch | https://www.youtube.com/watch?v=M9AAqsPVHic |
 
 > Observação: se o Swagger não abrir em `/swagger-ui.html`, acesse `/swagger-ui/index.html`.
